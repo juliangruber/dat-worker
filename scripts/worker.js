@@ -12,7 +12,11 @@ const key = process.argv[2] !== 'undefined'
 const dir = process.argv[3]
 const opts = JSON.parse(process.argv[4])
 
-const send = m => process.send(m)
+const send = m => {
+  process.send(m, err => {
+    if (err) process.exit(1)
+  })
+}
 
 const error = err => send({
   type: 'error',
