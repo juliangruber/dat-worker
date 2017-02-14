@@ -77,11 +77,7 @@ module.exports = (dir, opts, cb) => {
     }
   }
   w.close = cb => {
-    if (cb) {
-      proc.on('message', ({ type }) => {
-        if (type === 'exit') cb()
-      })
-    }
+    if (cb) proc.on('exit', cb)
     proc.kill()
   }
 
