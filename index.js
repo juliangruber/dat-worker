@@ -22,14 +22,13 @@ module.exports = class Worker extends EventEmitter {
     }
     const deferReadable = (fn, opts) => (...args) => {
       const out = new PassThrough(opts)
-      const onready = () => fn(...args).pipe(out)
+      const onready = () => fn(out, ...args)
       if (this.ready) onready()
       else this.once('ready', onready)
       return out
     }
     this.archive = {
-      list: deferReadable(opts => {
-        const out = new PassThrough({ objectMode: true })
+      list: deferReadable((out, opts) => {
         const path = `/tmp/dat-worker-${Math.random().toString(16)}`
         fs.writeFile(path, '', err => {
           if (err) return out.emit('error', err)
@@ -44,10 +43,8 @@ module.exports = class Worker extends EventEmitter {
           .pipe(JSONStream.parse([true]))
           .pipe(out)
         })
-        return out
       }, { objectMode: true }),
-      createFileReadStream: deferReadable((entry, opts) => {
-        const out = new PassThrough()
+      createFileReadStream: deferReadable((out, entry, opts) => {
         const path = `/tmp/dat-worker-${Math.random().toString(16)}`
         fs.writeFile(path, '', err => {
           if (err) return out.emit('error', err)
@@ -61,7 +58,6 @@ module.exports = class Worker extends EventEmitter {
           })
           slice(path).follow().pipe(out)
         })
-        return out
       })
     }
     this.ready = false
