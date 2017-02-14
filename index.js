@@ -62,7 +62,8 @@ module.exports = class Worker extends EventEmitter {
     }
     this.ready = false
   }
-  start () {
+  start (cb) {
+    if (cb) this.once('ready', cb)
     const proc =
     this.proc = fork(workerPath, [
       this.key,
