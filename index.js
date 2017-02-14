@@ -15,7 +15,7 @@ module.exports = (dir, opts, cb) => {
     [opts, cb] = [{}, opts]
   }
 
-  const w = new EventEmitter
+  const w = new EventEmitter()
   w.key = opts.key
   w.path = w.dir = dir
   w.db = { close: cb => setImmediate(cb) }
@@ -77,9 +77,11 @@ module.exports = (dir, opts, cb) => {
     }
   }
   w.close = cb => {
-    if (cb) proc.on('message', ({ type }) => {
-      if (type === 'exit') cb()
-    })
+    if (cb) {
+      proc.on('message', ({ type }) => {
+        if (type === 'exit') cb()
+      })
+    }
     proc.kill()
   }
 
