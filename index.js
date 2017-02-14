@@ -106,7 +106,9 @@ module.exports = class Worker extends EventEmitter {
           this.network = msg.network
           this.owner = msg.owner
           this.key = toBuf(msg.key)
-          this.archive.content = { bytes: msg.archive.content.bytes }
+          if (typeof msg.archive.content.bytes === 'number') {
+            this.archive.content = { bytes: msg.archive.content.bytes }
+          }
           this.emit('update')
           break
         case 'ready':
