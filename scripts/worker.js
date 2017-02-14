@@ -45,17 +45,23 @@ Dat(dir, { key }, (err, dat) => {
   const update = debounce(_update, 200)
 
   process.on('message', ({ type, msg }) => {
+    let rs, tr, ws
+
     switch (type) {
       case 'list':
-        const rs = dat.archive.list({ opts: msg.opts })
-        const tr = JSONStream.stringify()
-        const ws = fs.createWriteStream(msg.path)
+        rs = dat.archive.list({ opts: msg.opts })
+        tr = JSONStream.stringify()
+        ws = fs.createWriteStream(msg.path)
         rs.pipe(tr)
         tr.on('data', d => ws.write(`${d}\n`))
         break
       case 'createFileReadStream':
-        dat.archive.createFileReadStream(msg.entry, msg.opts)
-          .pipe(fs.createWriteStream(msg.path))
+        rs = dat.archive.createFileReadStream(msg.entry, msg.opts)
+        ws = fs.createWriteStream(msg.path)
+        rs.pipe(ws).on('close', () => send({
+          type: 'read-finish',
+          msg: msg.path
+        }))
         break
       default:
         error(new Error(`Unknown event: ${type}`))

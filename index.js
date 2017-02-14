@@ -57,7 +57,13 @@ module.exports = class Worker extends EventEmitter {
               opts
             }
           })
-          slice(path).follow().pipe(out)
+          const onmessage = ({ type, msg }) => {
+            if (type === 'read-finish' && msg === path) {
+              this.proc.removeListener('message', onmessage)
+              fs.createReadStream(path).pipe(out)
+            }
+          }
+          this.proc.on('message', onmessage)
         })
       })
     }
@@ -92,6 +98,9 @@ module.exports = class Worker extends EventEmitter {
         case 'ready':
           this.ready = true
           this.emit('ready')
+          break
+        case 'read-finish':
+          // handled above
           break
         default:
           this.emit('error', new Error(`Unknown event: ${type}`))
