@@ -27,6 +27,10 @@ Dat(dir, { key }, (err, dat) => {
           .pipe(JSONStream.stringify())
           .pipe(fs.createWriteStream(msg.path))
         break
+      case 'createFileReadStream':
+        dat.archive.createFileReadStream(msg.entry, msg.opts)
+          .pipe(fs.createWriteStream(msg.path))
+        break
       default:
         error(new Error(`Unknown event: ${type}`))
     }

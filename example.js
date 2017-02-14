@@ -16,7 +16,8 @@ w.on('error', err => {
 })
 //w.on('update', () => console.log(w))
 
-//w.archive.list({ live: true }).on('data', () => process.stdout.write('.'))
-w.archive.list({ live: true }).on('data', entry => console.log(entry))
+w.archive.list({ live: true }).on('data', () => process.stdout.write('.'))
+
+w.archive.createFileReadStream('dat.json').pipe(process.stdout)
 
 w.start()

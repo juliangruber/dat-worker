@@ -20,32 +20,49 @@ module.exports = class Worker extends EventEmitter {
     this.db = {
       close: cb => setImmediate(cb)
     }
+    const deferReadable = (fn, opts) => (...args) => {
+      const out = new PassThrough(opts)
+      const onready = () => fn(...args).pipe(out)
+      if (this.ready) onready()
+      else this.once('ready', onready)
+      return out
+    }
     this.archive = {
-      list: opts => {
+      list: deferReadable(opts => {
         const out = new PassThrough({ objectMode: true })
-
-        const onready = () => {
-          const path = `/tmp/dat-worker-${Math.random().toString(16)}`
-          fs.writeFile(path, '', err => {
-            if (err) return out.emit('error', err)
-            this.proc.send({
-              type: 'list',
-              msg: {
-                path,
-                opts: opts
-              }
-            })
-            slice(path).follow()
-            .pipe(JSONStream.parse([true]))
-            .pipe(out)
+        const path = `/tmp/dat-worker-${Math.random().toString(16)}`
+        fs.writeFile(path, '', err => {
+          if (err) return out.emit('error', err)
+          this.proc.send({
+            type: 'list',
+            msg: {
+              path,
+              opts: opts
+            }
           })
-        }
-
-        if (this.ready) onready()
-        else this.once('ready', onready)
-
+          slice(path).follow()
+          .pipe(JSONStream.parse([true]))
+          .pipe(out)
+        })
         return out
-      }
+      }, { objectMode: true }),
+      createFileReadStream: deferReadable((entry, opts) => {
+        const out = new PassThrough()
+        const path = `/tmp/dat-worker-${Math.random().toString(16)}`
+        fs.writeFile(path, '', err => {
+          if (err) return out.emit('error', err)
+          this.proc.send({
+            type: 'createFileReadStream',
+            msg: {
+              path,
+              entry,
+              opts
+            }
+          })
+          slice(path).follow().pipe(out)
+        })
+        return out
+      })
     }
     this.ready = false
   }
