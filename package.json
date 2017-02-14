@@ -1,6 +1,6 @@
 {
   "name": "dat-worker",
-  "version": "4.4.4",
+  "version": "5.0.0",
   "license": "MIT",
   "scripts": {
     "test": "standard"
