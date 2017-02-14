@@ -12,7 +12,6 @@ module.exports = class Worker extends EventEmitter {
     this.dir = dir
     this.opts = opts
     this.proc = null
-    this.info = { key }
   }
   start () {
     const proc =
@@ -29,8 +28,8 @@ module.exports = class Worker extends EventEmitter {
           this.emit('error', err)
           break
         case 'update':
-          this.info = msg
-          this.emit('update', this.info)
+          Object.assign(this, msg)
+          this.emit('update')
           break
         default:
           this.emit('error', new Error(`Unknown event: ${type}`))

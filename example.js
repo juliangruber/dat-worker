@@ -14,6 +14,6 @@ const w = new Worker({
 w.on('error', err => {
   throw err
 })
-w.on('update', info => console.log(info))
+w.on('update', () => console.log(w))
 
 w.start()
