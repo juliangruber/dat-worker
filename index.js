@@ -36,11 +36,13 @@ module.exports = class Worker extends EventEmitter {
           this.emit('error', new Error(`Unknown event: ${type}`))
       }
     })
+    proc.on('exit', () => this.emit('exit'))
   }
   info () {
     return this.info
   }
-  kill () {
+  kill (cb) {
+    if (cb) this.on('exit', cb)
     this.proc.kill()
   }
 }
