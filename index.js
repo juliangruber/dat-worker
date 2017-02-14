@@ -2,7 +2,7 @@
 
 const {fork} = require('child_process')
 const {EventEmitter} = require('events')
-const {toBuf} = require('dat-encoding')
+const {toBuf, toStr} = require('dat-encoding')
 const slice = require('slice-file')
 const JSONStream = require('JSONStream')
 const {PassThrough} = require('stream')
@@ -66,7 +66,9 @@ module.exports = class Worker extends EventEmitter {
     if (cb) this.once('ready', cb)
     const proc =
     this.proc = fork(workerPath, [
-      this.key,
+      this.key
+        ? toStr(this.key)
+        : undefined,
       this.dir,
       JSON.stringify(this.opts)
     ])
