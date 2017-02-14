@@ -2,6 +2,7 @@
 
 const {fork} = require('child_process')
 const {EventEmitter} = require('events')
+const {toBuf} = require('dat-encoding')
 
 const workerPath = `${__dirname}/scripts/worker.js`
 
@@ -28,6 +29,7 @@ module.exports = class Worker extends EventEmitter {
           this.emit('error', err)
           break
         case 'update':
+          msg.key = toBuf(msg.key)
           Object.assign(this, msg)
           this.emit('update')
           break
