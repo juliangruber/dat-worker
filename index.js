@@ -44,12 +44,12 @@ module.exports = (dir, opts, cb) => {
 
         const sl = slice(path)
         const rs = sl.follow()
+        rs.on('error', () => {}) // FIXME
         const tr = JSONStream.parse([true])
+        tr.on('error', () => {}) // FIXME
         rs.pipe(tr).pipe(out)
 
         out.on('destroy', () => {
-          rs.on('error', () => {})
-          tr.on('error', () => {})
           sl.close()
         })
       })
