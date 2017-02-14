@@ -22,6 +22,10 @@ module.exports = class Worker extends EventEmitter {
     }
     const deferReadable = (fn, opts) => (...args) => {
       const out = new PassThrough(opts)
+      out.destroy = () => {
+        out.destroyed = true
+        out.emit('destroy')
+      }
       const onready = () => fn(out, ...args)
       if (this.ready) onready()
       else this.once('ready', onready)
@@ -30,9 +34,12 @@ module.exports = class Worker extends EventEmitter {
     this.archive = {
       content: {},
       list: deferReadable((out, opts) => {
+        if (out.destroyed) return
         const path = `/tmp/dat-worker-${Math.random().toString(16)}`
         fs.writeFile(path, '', err => {
           if (err) return out.emit('error', err)
+          if (out.destroyed) return
+
           this.proc.send({
             type: 'list',
             msg: {
@@ -40,9 +47,13 @@ module.exports = class Worker extends EventEmitter {
               opts: opts
             }
           })
-          slice(path).follow()
-          .pipe(JSONStream.parse([true]))
-          .pipe(out)
+
+          const sl = slice(path)
+          const rs = sl.follow()
+          const tr = JSONStream.parse([true])
+          rs.pipe(tr).pipe(out)
+
+          out.on('destroy', () => sl.close())
         })
       }, { objectMode: true }),
       createFileReadStream: deferReadable((out, entry, opts) => {
