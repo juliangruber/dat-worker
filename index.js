@@ -35,7 +35,7 @@ module.exports = class Worker extends EventEmitter {
       return out
     }
     this.archive = {
-      content: {},
+      content: null,
       list: deferReadable((out, opts) => {
         if (out.destroyed) return
         const path = `/tmp/dat-worker-${Math.random().toString(16)}`
@@ -106,7 +106,7 @@ module.exports = class Worker extends EventEmitter {
           this.network = msg.network
           this.owner = msg.owner
           this.key = toBuf(msg.key)
-          this.archive.content.bytes = msg.archive.content.bytes
+          this.archive.content = { bytes: msg.archive.content.bytes }
           this.emit('update')
           break
         case 'ready':
