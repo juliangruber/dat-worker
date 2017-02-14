@@ -26,7 +26,6 @@ module.exports = class Worker extends EventEmitter {
         case 'error':
           const err = new Error(msg.message)
           err.stack = msg.stack
-          proc.kill()
           this.emit('error', err)
           break
         case 'update':
@@ -40,6 +39,9 @@ module.exports = class Worker extends EventEmitter {
   }
   info () {
     return this.info
+  }
+  kill () {
+    this.proc.kill()
   }
 }
 
