@@ -68,7 +68,13 @@ module.exports = (dir, opts, cb) => {
         const onmessage = ({ type, msg }) => {
           if (type === 'read-finish' && msg === path) {
             proc.removeListener('message', onmessage)
-            fs.createReadStream(path).pipe(out)
+            const rs = fs.createReadStream(path)
+            rs.pipe(out)
+            rs.on('close', () => {
+              fs.unlink(path, err => {
+                if (err) out.emit('error', err)
+              })
+            })
           }
         }
         proc.on('message', onmessage)
