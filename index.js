@@ -44,6 +44,7 @@ module.exports = (dir, opts, cb) => {
 
         const sl = slice(path)
         const rs = sl.follow()
+        rs.on('error', () => {})
         const tr = JSONStream.parse([true])
         rs.pipe(tr).pipe(out)
 

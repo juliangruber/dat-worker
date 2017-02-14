@@ -14,7 +14,9 @@ Dat('/tmp/dat-worker-example', {
     console.log(dat.key)
   }) */
 
-  // dat.archive.list({ live: true }).on('data', () => process.stdout.write('.'))
+  const listStream = dat.archive.list({ live: true })
+  listStream.once('data', () => listStream.destroy())
+  listStream.on('data', () => process.stdout.write('.'))
 
-  dat.archive.createFileReadStream('dat.json').pipe(process.stdout)
+  //dat.archive.createFileReadStream('dat.json').pipe(process.stdout)
 })
