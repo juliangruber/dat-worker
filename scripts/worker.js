@@ -47,9 +47,11 @@ Dat(dir, { key }, (err, dat) => {
   process.on('message', ({ type, msg }) => {
     switch (type) {
       case 'list':
-        dat.archive.list({ opts: msg.opts })
-          .pipe(JSONStream.stringify())
-          .pipe(fs.createWriteStream(msg.path))
+        const rs = dat.archive.list({ opts: msg.opts })
+        const tr = JSONStream.stringify()
+        const ws = fs.createWriteStream(msg.path)
+        rs.pipe(tr)
+        tr.on('data', d => ws.write(`${d}\n`))
         break
       case 'createFileReadStream':
         dat.archive.createFileReadStream(msg.entry, msg.opts)

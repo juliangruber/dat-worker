@@ -15,11 +15,11 @@ w.on('error', err => {
   throw err
 })
 
-w.on('update', () => {
+/* w.on('update', () => {
   console.log(w.key)
-})
+}) */
 
-// w.archive.list({ live: true }).on('data', () => process.stdout.write('.'))
+w.archive.list({ live: true }).on('data', () => process.stdout.write('.'))
 
 // w.archive.createFileReadStream('dat.json').pipe(process.stdout)
 
