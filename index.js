@@ -28,6 +28,7 @@ module.exports = class Worker extends EventEmitter {
       return out
     }
     this.archive = {
+      content: {},
       list: deferReadable((out, opts) => {
         const path = `/tmp/dat-worker-${Math.random().toString(16)}`
         fs.writeFile(path, '', err => {
@@ -81,7 +82,11 @@ module.exports = class Worker extends EventEmitter {
           break
         case 'update':
           msg.key = toBuf(msg.key)
-          Object.assign(this, msg)
+          this.stats = () => msg.stats
+          this.network = msg.network
+          this.owner = msg.owner
+          this.key = toBuf(msg.key)
+          this.archive.content.bytes = msg.archive.content.bytes
           this.emit('update')
           break
         case 'ready':
