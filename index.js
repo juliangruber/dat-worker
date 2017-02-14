@@ -13,6 +13,9 @@ module.exports = class Worker extends EventEmitter {
     this.dir = dir
     this.opts = opts
     this.proc = null
+    this.db = {
+      close: cb => setImmediate(cb)
+    }
   }
   start () {
     const proc =
@@ -42,7 +45,7 @@ module.exports = class Worker extends EventEmitter {
   info () {
     return this.info
   }
-  kill (cb) {
+  close (cb) {
     if (cb) this.on('exit', cb)
     this.proc.kill()
   }
