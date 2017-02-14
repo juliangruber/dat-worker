@@ -6,7 +6,9 @@ const {toStr} = require('dat-encoding')
 const fs = require('fs')
 const JSONStream = require('JSONStream')
 
-const key = process.argv[2]
+const key = process.argv[2] !== 'undefined'
+  ? process.argv[2]
+  : undefined
 const dir = process.argv[3]
 const opts = JSON.parse(process.argv[4])
 
