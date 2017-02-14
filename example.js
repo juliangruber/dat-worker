@@ -1,26 +1,20 @@
 'use strict'
 
-const Worker = require('.')
+const Dat = require('.')
 const fs = require('fs')
 
 try { fs.mkdirSync('/tmp/dat-worker-example') } catch (_) {}
 
-const w = new Worker({
+Dat('/tmp/dat-worker-example', {
   /* key: 'f34f99538702f3b55ea3b88c9e374fb72db0ca35903c2249aaa09280accc2062', */
-  dir: '/tmp/dat-worker-example',
-  opts: {}
+}, (err, dat) => {
+  if (err) throw err
+
+  /* dat.on('update', () => {
+    console.log(dat.key)
+  }) */
+
+  // dat.archive.list({ live: true }).on('data', () => process.stdout.write('.'))
+
+  dat.archive.createFileReadStream('dat.json').pipe(process.stdout)
 })
-
-w.on('error', err => {
-  throw err
-})
-
-/* w.on('update', () => {
-  console.log(w.key)
-}) */
-
-// w.archive.list({ live: true }).on('data', () => process.stdout.write('.'))
-
-w.archive.createFileReadStream('dat.json').pipe(process.stdout)
-
-w.start()
