@@ -14,7 +14,7 @@ module.exports = class Worker extends EventEmitter {
   constructor ({ key, dir, opts }) {
     super()
     this.key = key
-    this.dir = dir
+    this.dir = this.path = dir
     this.opts = opts
     this.proc = null
     this.db = {
