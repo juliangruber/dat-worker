@@ -3,6 +3,10 @@
 const {fork} = require('child_process')
 const {EventEmitter} = require('events')
 const {toBuf} = require('dat-encoding')
+const slice = require('slice-file')
+const JSONStream = require('JSONStream')
+const {PassThrough} = require('stream')
+const fs = require('fs')
 
 const workerPath = `${__dirname}/scripts/worker.js`
 
@@ -16,6 +20,34 @@ module.exports = class Worker extends EventEmitter {
     this.db = {
       close: cb => setImmediate(cb)
     }
+    this.archive = {
+      list: opts => {
+        const out = new PassThrough({ objectMode: true })
+
+        const onready = () => {
+          const path = `/tmp/dat-worker-${Math.random().toString(16)}`
+          fs.writeFile(path, '', err => {
+            if (err) return out.emit('error', err)
+            this.proc.send({
+              type: 'list',
+              msg: {
+                path,
+                opts: opts
+              }
+            })
+            slice(path).follow()
+            .pipe(JSONStream.parse([true]))
+            .pipe(out)
+          })
+        }
+
+        if (this.ready) onready()
+        else this.once('ready', onready)
+
+        return out
+      }
+    }
+    this.ready = false
   }
   start () {
     const proc =
@@ -35,6 +67,10 @@ module.exports = class Worker extends EventEmitter {
           msg.key = toBuf(msg.key)
           Object.assign(this, msg)
           this.emit('update')
+          break
+        case 'ready':
+          this.ready = true
+          this.emit('ready')
           break
         default:
           this.emit('error', new Error(`Unknown event: ${type}`))

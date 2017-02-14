@@ -14,6 +14,9 @@ const w = new Worker({
 w.on('error', err => {
   throw err
 })
-w.on('update', () => console.log(w))
+//w.on('update', () => console.log(w))
+
+//w.archive.list({ live: true }).on('data', () => process.stdout.write('.'))
+w.archive.list({ live: true }).on('data', entry => console.log(entry))
 
 w.start()

@@ -3,6 +3,8 @@
 const Dat = require('dat-node')
 const debounce = require('debounce')
 const {toStr} = require('dat-encoding')
+const fs = require('fs')
+const JSONStream = require('JSONStream')
 
 const key = process.argv[2]
 const dir = process.argv[3]
@@ -17,6 +19,20 @@ const error = err => send({
 
 Dat(dir, { key }, (err, dat) => {
   if (err) return error(err)
+
+  process.on('message', ({ type, msg }) => {
+    switch (type) {
+      case 'list':
+        dat.archive.list({ opts: msg.opts })
+          .pipe(JSONStream.stringify())
+          .pipe(fs.createWriteStream(msg.path))
+        break
+      default:
+        error(new Error(`Unknown event: ${type}`))
+    }
+  })
+  send({ type: 'ready' })
+
   const update = debounce(() => send({
     type: 'update',
     msg: {
@@ -54,4 +70,3 @@ Dat(dir, { key }, (err, dat) => {
 
   update()
 })
-
