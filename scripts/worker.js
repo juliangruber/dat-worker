@@ -26,6 +26,24 @@ const error = err => send({
 Dat(dir, { key }, (err, dat) => {
   if (err) return error(err)
 
+  const _update = () => send({
+    type: 'update',
+    msg: {
+      stats: stats.get(),
+      network: {
+        connected: network.connected
+      },
+      owner: dat.owner,
+      key: toStr(dat.key),
+      archive: {
+        content: {
+          bytes: dat.archive.content && dat.archive.content.bytes
+        }
+      }
+    }
+  })
+  const update = debounce(_update, 200)
+
   process.on('message', ({ type, msg }) => {
     switch (type) {
       case 'list':
@@ -41,24 +59,6 @@ Dat(dir, { key }, (err, dat) => {
         error(new Error(`Unknown event: ${type}`))
     }
   })
-  send({ type: 'ready' })
-
-  const update = debounce(() => send({
-    type: 'update',
-    msg: {
-      stats: stats.get(),
-      network: {
-        connected: network.connected
-      },
-      owner: dat.owner,
-      key: toStr(dat.key),
-      archive: {
-        content: {
-          bytes: dat.archive.content && dat.archive.content.bytes
-        }
-      }
-    }
-  }), 200)
 
   if (dat.owner) {
     const importer = dat.importFiles(opts, err => {
@@ -78,5 +78,6 @@ Dat(dir, { key }, (err, dat) => {
 
   dat.archive.on('download', update)
 
-  update()
+  _update()
+  send({ type: 'ready' })
 })
