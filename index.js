@@ -20,6 +20,9 @@ module.exports = class Worker extends EventEmitter {
     this.db = {
       close: cb => setImmediate(cb)
     }
+    this.stats = {
+      get: () => { return {} }
+    }
     const deferReadable = (fn, opts) => (...args) => {
       const out = new PassThrough(opts)
       out.destroy = () => {
@@ -99,7 +102,7 @@ module.exports = class Worker extends EventEmitter {
           break
         case 'update':
           msg.key = toBuf(msg.key)
-          this.stats = () => msg.stats
+          this.stats.get = () => msg.stats
           this.network = msg.network
           this.owner = msg.owner
           this.key = toBuf(msg.key)
@@ -127,4 +130,3 @@ module.exports = class Worker extends EventEmitter {
     this.proc.kill()
   }
 }
-
