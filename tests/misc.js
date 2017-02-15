@@ -51,3 +51,20 @@ test('custom ignore extends default (string)', function (t) {
     }, 1000)
   })
 })
+
+test('custom ignore extends default (array)', function (t) {
+  Dat(shareFolder, { ignore: ['super_secret_stuff/*', '**/*.txt'] }, function (err, dat) {
+    t.error(err)
+    setTimeout(function () {
+      var matchers = [/^(?:\/.*)?\.dat(?:\/.*)?$/, /[/\\]\./, 'super_secret_stuff/*', '**/*.txt']
+
+      t.ok(anymatch(matchers, '.dat'), '.dat still feeling left out =(')
+      t.ok(anymatch(matchers, 'password.txt'), 'file ignored')
+      t.ok(anymatch(matchers, 'super_secret_stuff/file.js'), 'secret stuff stays secret')
+      t.notOk(anymatch(matchers, 'foo/bar.js'), 'js file joins the party =)')
+      dat.close(function () {
+        t.end()
+      })
+    }, 1000)
+  })
+})
