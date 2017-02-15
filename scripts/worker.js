@@ -2,7 +2,7 @@
 
 const Dat = require('dat-node')
 const debounce = require('debounce')
-const {toStr} = require('dat-encoding')
+const toStr = require('dat-encoding').toStr
 const fs = require('fs')
 const JSONStream = require('JSONStream')
 
@@ -44,7 +44,9 @@ Dat(dir, { key }, (err, dat) => {
   })
   const update = debounce(_update, 200)
 
-  process.on('message', ({ type, msg }) => {
+  process.on('message', obj => {
+    const type = obj.type
+    const msg = obj.msg
     let rs, tr, ws
 
     switch (type) {

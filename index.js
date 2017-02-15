@@ -1,18 +1,19 @@
 'use strict'
 
-const {fork} = require('child_process')
-const {EventEmitter} = require('events')
-const {toBuf, toStr} = require('dat-encoding')
+const fork = require('child_process').fork
+const EventEmitter = require('events')
+const enc = require('dat-encoding')
 const slice = require('slice-file')
 const JSONStream = require('JSONStream')
-const {PassThrough} = require('stream')
+const PassThrough = require('stream').PassThrough
 const fs = require('fs')
 
 const workerPath = `${__dirname}/scripts/worker.js`
 
 module.exports = (dir, opts, cb) => {
   if (typeof opts === 'function') {
-    [opts, cb] = [{}, opts]
+    cb = opts
+    opts = {}
   }
 
   const w = new EventEmitter()
@@ -69,7 +70,10 @@ module.exports = (dir, opts, cb) => {
             opts
           }
         })
-        const onmessage = ({ type, msg }) => {
+        const onmessage = obj => {
+          const type = obj.type
+          const msg = obj.msg
+
           if (type === 'read-finish' && msg === path) {
             proc.removeListener('message', onmessage)
             const rs = fs.createReadStream(path)
@@ -93,20 +97,23 @@ module.exports = (dir, opts, cb) => {
 
   const proc = fork(workerPath, [
     w.key
-      ? toStr(w.key)
+      ? enc.toStr(w.key)
       : undefined,
     w.dir,
     JSON.stringify(opts)
   ])
 
-  proc.on('message', ({ type, msg }) => {
+  proc.on('message', obj => {
+    const type = obj.type
+    const msg = obj.msg
+
     switch (type) {
       case 'update':
-        msg.key = toBuf(msg.key)
+        msg.key = enc.toBuf(msg.key)
         w.stats.get = () => msg.stats
         w.network = msg.network
         w.owner = msg.owner
-        w.key = toBuf(msg.key)
+        w.key = enc.toBuf(msg.key)
         if (typeof msg.archive.content.bytes === 'number') {
           w.archive.content = { bytes: msg.archive.content.bytes }
         }
@@ -114,7 +121,10 @@ module.exports = (dir, opts, cb) => {
     }
   })
 
-  const onInitMessage = ({ type, msg }) => {
+  const onInitMessage = obj => {
+    const type = obj.type
+    const msg = obj.msg
+
     switch (type) {
       case 'error':
         const err = new Error(msg.message)
