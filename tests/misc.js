@@ -6,8 +6,8 @@ var rimraf = require('rimraf')
 // var memdown = require('memdown')
 // var hyperdrive = require('hyperdrive')
 var encoding = require('dat-encoding')
-// var fs = require('fs')
-// var os = require('os')
+var fs = require('fs')
+var os = require('os')
 // var mkdirp = require('mkdirp')
 
 var Dat = require('..')
@@ -136,6 +136,31 @@ test('expose .key', function (t) {
         datB.close(function (err) {
           t.error(err)
           rimraf.sync(path.join(folder, '.dat'))
+          t.end()
+        })
+      })
+    })
+  })
+})
+
+test('expose .owner', function (t) {
+  rimraf.sync(path.join(shareFolder, '.dat'))
+  var downFolder = path.join(os.tmpdir(), 'dat-' + Math.random().toString(16).slice(2))
+  fs.mkdirSync(downFolder)
+
+  Dat(shareFolder, function (err, shareDat) {
+    t.error(err, 'dat shared')
+    t.ok(shareDat.owner, 'is owner')
+
+    Dat(downFolder, {key: shareDat.key}, function (err, downDat) {
+      t.error(err, 'dat downloaded')
+      t.notOk(downDat.owner, 'not owner')
+
+      shareDat.close(function (err) {
+        t.error(err, 'share dat closed')
+        downDat.close(function (err) {
+          t.error(err, 'download dat closed')
+          rimraf.sync(downFolder)
           t.end()
         })
       })
