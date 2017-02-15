@@ -5,7 +5,7 @@ var rimraf = require('rimraf')
 // var memdb = require('memdb')
 // var memdown = require('memdown')
 // var hyperdrive = require('hyperdrive')
-// var encoding = require('dat-encoding')
+var encoding = require('dat-encoding')
 // var fs = require('fs')
 // var os = require('os')
 // var mkdirp = require('mkdirp')
@@ -82,5 +82,27 @@ test('ignore hidden option turned off', function (t) {
         t.end()
       })
     }, 1000)
+  })
+})
+
+test('string or buffer .key', function (t) {
+  rimraf.sync(path.join(process.cwd(), '.dat')) // for failed tests
+  var buf = new Buffer(32)
+  Dat(process.cwd(), { key: buf }, function (err, dat) {
+    t.error(err, 'no callback error')
+    t.deepEqual(dat.archive.key, buf, 'keys match')
+
+    dat.close(function (err) {
+      t.error(err, 'no close error')
+
+      Dat(process.cwd(), {key: encoding.encode(buf)}, function (err, dat) {
+        t.error(err, 'no callback error')
+        t.deepEqual(dat.archive.key, buf, 'keys match still')
+        dat.close(function () {
+          rimraf.sync(path.join(process.cwd(), '.dat'))
+          t.end()
+        })
+      })
+    })
   })
 })
