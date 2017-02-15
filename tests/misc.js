@@ -68,3 +68,19 @@ test('custom ignore extends default (array)', function (t) {
     }, 1000)
   })
 })
+
+test('ignore hidden option turned off', function (t) {
+  Dat(shareFolder, { ignoreHidden: false }, function (err, dat) {
+    t.error(err)
+    setTimeout(function () {
+      var matchers = [/^(?:\/.*)?\.dat(?:\/.*)?$/]
+
+      t.ok(anymatch(matchers, '.dat'), '.dat still feeling left out =(')
+      t.notOk(anymatch(matchers, '.other-hidden'), 'hidden file NOT ignored')
+      t.notOk(anymatch(matchers, 'dir/.git'), 'hidden folders with dir NOT ignored')
+      dat.close(function () {
+        t.end()
+      })
+    }, 1000)
+  })
+})
