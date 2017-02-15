@@ -121,6 +121,59 @@ test('close first test', function (t) {
   })
 })
 
+test('download from snapshot', function (t) {
+  var shareKey
+  Dat(fixtures, {live: false}, function (err, dat) {
+    t.error(err, 'live: false share, no error')
+    shareDat = dat
+    dat.once('update', function () {
+      shareKey = dat.key
+      download()
+    })
+  })
+
+  function download () {
+    testFolder(function () {
+      Dat(downloadDir, { key: shareKey }, function (err, dat) {
+        t.error(err, 'no download init error')
+        t.ok(dat, 'callsback with dat object')
+        t.ok(dat.key, 'has key')
+        t.ok(dat.archive, 'has archive')
+        t.ok(dat.db, 'has db')
+        t.ok(dat.owner === false, 'archive not owned')
+
+        setTimeout(done, 1000)
+        function done () {
+          fs.readdir(downloadDir, function (_, files) {
+            var hasCsvFile = files.indexOf('table.csv') > -1
+            var hasDatFolder = files.indexOf('.dat') > -1
+            t.ok(hasDatFolder, '.dat folder created')
+            t.ok(hasCsvFile, 'csv file downloaded')
+
+            dat.close(function () {
+              t.pass('close callback ok')
+              t.end()
+            })
+          })
+        }
+      })
+    })
+  }
+})
+
+test('finished', function (t) {
+  shareDat.close(function () {
+    shareDat.db.close(function () {
+      rimraf.sync(path.join(fixtures, '.dat'))
+      t.end()
+    })
+  })
+})
+
+test.onFinish(function () {
+  rimraf.sync(downloadDir)
+})
+
 function testFolder (cb) {
   // Delete old folder and make new one
   if (downloadDir && downloadDir.length) rimraf.sync(downloadDir)
