@@ -106,3 +106,17 @@ test('string or buffer .key', function (t) {
     })
   })
 })
+
+test('leveldb open error', function (t) {
+  Dat(process.cwd(), function (err, datA) {
+    t.error(err)
+    Dat(process.cwd(), function (err, datB) {
+      t.ok(err)
+      datA.close(function () {
+        rimraf(path.join(process.cwd(), '.dat'), function () {
+          t.end()
+        })
+      })
+    })
+  })
+})
