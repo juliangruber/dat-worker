@@ -18,5 +18,8 @@ Dat('/tmp/dat-worker-example', {
   listStream.once('data', () => listStream.destroy())
   listStream.on('data', () => process.stdout.write('.'))
 
+  dat.stdout.pipe(process.stdout, { end: false })
+  dat.stderr.pipe(process.stderr, { end: false })
+
   // dat.archive.createFileReadStream('dat.json').pipe(process.stdout)
 })
