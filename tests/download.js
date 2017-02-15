@@ -16,7 +16,7 @@ var fixtureStats = {
   bytesTotal: 1441
 }
 
-// var downloadDat
+var downloadDat
 var downloadDir
 var shareDat
 var shareKey
@@ -35,7 +35,7 @@ test('prep', function (t) {
 })
 
 test('Download with default opts', function (t) {
-  Dat(downloadDir, {key: shareKey}, function (err, dat) {
+  Dat(downloadDir, {key: shareKey, live: true}, function (err, dat) {
     t.error(err, 'no download init error')
     t.ok(dat, 'callsback with dat object')
     t.ok(dat.key, 'has key')
@@ -43,7 +43,7 @@ test('Download with default opts', function (t) {
     t.ok(dat.db, 'has db')
     t.ok(dat.owner === false, 'archive not owned')
 
-    // downloadDat = dat
+    downloadDat = dat
 
     dat.once('update', function () {
       t.pass('dat emits update')
@@ -67,14 +67,50 @@ test('Download with default opts', function (t) {
           t.skip(hasEmtpy, 'empty.txt file downloaded')
           // TODO: known hyperdrive issue https://github.com/mafintosh/hyperdrive/issues/83
         }
-        dat.close(function (err) {
-          t.error(err, 'dat closed')
-          t.end()
-        })
+        t.end()
       })
     }, 1500)
   })
 })
+
+if (!process.env.TRAVIS) {
+  test('download and live update (new file)', function (t) {
+    var dat = downloadDat // use previous test download
+    var newFile = path.join(fixtures, 'new.txt')
+
+    dat.on('update', function () {
+      t.same(dat.stats.get().filesTotal, fixtureStats.filesTotal + 1, 'filesTotal has one more')
+
+      var st = dat.stats.get()
+      if (st.blocksTotal && st.blocksProgress >= st.blocksTotal) return done()
+    })
+
+    addShareFile()
+
+    function addShareFile () {
+      fs.writeFileSync(newFile, 'helloooooo')
+    }
+
+    function done () {
+      // shareDat file watching is closing without callback and causing trouble
+      dat.close(function () {
+        fs.unlink(newFile, function () {
+          t.end()
+        })
+      })
+    }
+  })
+}
+
+if (process.env.TRAVIS) {
+  // This is closed in previous test, but travis skips that because of the live stuff
+  test('close previous download', function (t) {
+    downloadDat.close(function (err) {
+      t.error(err)
+      t.end()
+    })
+  })
+}
 
 test('cleanup', function (t) {
   shareDat.close(function (err) {
