@@ -113,7 +113,7 @@ module.exports = (dir, opts, cb) => {
         w.stats.get = () => msg.stats
         w.network = msg.network
         w.owner = msg.owner
-        w.key = enc.toBuf(msg.key)
+        w.key = w.archive.key = enc.toBuf(msg.key)
         if (typeof msg.archive.content.bytes === 'number') {
           w.archive.content = { bytes: msg.archive.content.bytes }
         }
