@@ -35,3 +35,19 @@ test('default ignore', function (t) {
     }, 1000)
   })
 })
+
+test('custom ignore extends default (string)', function (t) {
+  Dat(shareFolder, { ignore: '**/*.js' }, function (err, dat) {
+    t.error(err)
+    setTimeout(function () {
+      var matchers = [/^(?:\/.*)?\.dat(?:\/.*)?$/, /[/\\]\./, '**/*.js']
+
+      t.ok(anymatch(matchers, '.dat'), '.dat folder ignored')
+      t.ok(anymatch(matchers, 'foo/bar.js'), 'custom ignore works')
+      t.notOk(anymatch(matchers, 'foo/bar.txt'), 'txt file gets to come along =)')
+      dat.close(function () {
+        t.end()
+      })
+    }, 1000)
+  })
+})
