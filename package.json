@@ -13,6 +13,7 @@
     "slice-file": "^1.0.0"
   },
   "devDependencies": {
+    "anymatch": "^1.3.0",
     "mkdirp": "^0.5.1",
     "rimraf": "^2.5.4",
     "standard": "^8.6.0",
