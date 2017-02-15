@@ -112,9 +112,11 @@ if (process.env.TRAVIS) {
   })
 }
 
-test('cleanup', function (t) {
+test('close first test', function (t) {
   shareDat.close(function (err) {
-    t.error(err, 'dat closed')
+    t.error(err, 'no close error')
+    t.pass('close')
+    rimraf.sync(path.join(fixtures, '.dat'))
     t.end()
   })
 })
