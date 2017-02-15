@@ -120,3 +120,25 @@ test('leveldb open error', function (t) {
     })
   })
 })
+
+test('expose .key', function (t) {
+  var folder = path.join(__dirname, 'fixtures')
+  var key = new Buffer(32)
+  Dat(process.cwd(), { key: key }, function (err, datA) {
+    t.error(err)
+    t.deepEqual(datA.key, key)
+
+    Dat(folder, function (err, datB) {
+      t.error(err)
+      t.notDeepEqual(datB.key, key)
+      datA.close(function (err) {
+        t.error(err)
+        datB.close(function (err) {
+          t.error(err)
+          rimraf.sync(path.join(folder, '.dat'))
+          t.end()
+        })
+      })
+    })
+  })
+})
