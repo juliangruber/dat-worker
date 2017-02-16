@@ -7,6 +7,7 @@ const slice = require('slice-file')
 const JSONStream = require('JSONStream')
 const PassThrough = require('stream').PassThrough
 const fs = require('fs')
+const extend = require('xtend')
 
 const workerPath = `${__dirname}/scripts/worker.js`
 
@@ -102,6 +103,7 @@ module.exports = (dir, opts, cb) => {
     w.dir,
     JSON.stringify(opts)
   ], {
+    env: extend(process.env, opts.env),
     silent: true,
     stdio: ['pipe', 'pipe', 'pipe', 'ipc']
   })
