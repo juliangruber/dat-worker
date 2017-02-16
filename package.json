@@ -1,6 +1,6 @@
 {
   "name": "dat-worker",
-  "version": "5.1.0",
+  "version": "5.2.0",
   "license": "MIT",
   "scripts": {
     "test": "tape tests/*.js && standard"
