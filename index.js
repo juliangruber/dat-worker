@@ -113,8 +113,6 @@ module.exports = (dir, opts, cb) => {
   })
   w.stdout = proc.stdout
   w.stderr = proc.stderr
-  w.stdout.on('data', d=>console.log(d.toString()))
-  w.stderr.on('data', d=>console.error(d.toString()))
 
   proc.on('message', obj => {
     const type = obj.type
