@@ -1,6 +1,6 @@
 'use strict'
 
-const fork = require('child_process').fork
+const spawn = require('child_process').spawn
 const EventEmitter = require('events')
 const enc = require('dat-encoding')
 const slice = require('slice-file')
@@ -96,18 +96,15 @@ module.exports = (dir, opts, cb) => {
     proc.kill()
   }
 
-  const proc = fork(workerPath, [
+  const proc = spawn(process.execPath, [
+    workerPath,
     w.key
       ? enc.toStr(w.key)
       : undefined,
     w.dir,
     JSON.stringify(opts)
   ], {
-    env: extend(
-      process.env,
-      { ELECTRON_RUN_AS_NODE: false },
-      opts.env
-    ),
+    env: extend(process.env, opts.env),
     silent: true,
     stdio: ['pipe', 'pipe', 'pipe', 'ipc']
   })
