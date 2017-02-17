@@ -126,6 +126,13 @@ module.exports = (dir, opts, cb) => {
           w.archive.content = { bytes: msg.archive.content.bytes }
         }
         w.emit('update')
+        break
+      case 'error':
+        const err = new Error(msg.message)
+        err.stack = msg.stack
+        w.emit('error', err)
+        proc.kill()
+        break
     }
   })
 
