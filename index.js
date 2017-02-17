@@ -96,7 +96,7 @@ module.exports = (dir, opts, cb) => {
     proc.kill()
   }
 
-  const proc = spawn(process.execPath, [
+  const proc = spawn(opts.execPath || 'node', [
     workerPath,
     w.key
       ? enc.toStr(w.key)
