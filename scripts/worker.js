@@ -6,6 +6,12 @@ const toStr = require('dat-encoding').toStr
 const fs = require('fs')
 const JSONStream = require('JSONStream')
 
+
+try {
+  const app = require('electron').app
+  app.dock.hide()
+} catch (_) {}
+
 const key = process.argv[2] !== 'undefined'
   ? process.argv[2]
   : undefined
