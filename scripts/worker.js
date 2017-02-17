@@ -1,11 +1,23 @@
 'use strict'
 
+const send = m => {
+  process.send(m, err => {
+    if (err) process.exit(1)
+  })
+}
+
+const error = err => send({
+  type: 'error',
+  msg: { message: err.message, stack: err.stack }
+})
+
+process.on('uncaughtException', err => error(err))
+
 const Dat = require('dat-node')
 const debounce = require('debounce')
 const toStr = require('dat-encoding').toStr
 const fs = require('fs')
 const JSONStream = require('JSONStream')
-
 
 try {
   const app = require('electron').app
@@ -17,17 +29,6 @@ const key = process.argv[2] !== 'undefined'
   : undefined
 const dir = process.argv[3]
 const opts = JSON.parse(process.argv[4])
-
-const send = m => {
-  process.send(m, err => {
-    if (err) process.exit(1)
-  })
-}
-
-const error = err => send({
-  type: 'error',
-  msg: { message: err.message, stack: err.stack }
-})
 
 Dat(dir, { key }, (err, dat) => {
   if (err) return error(err)
