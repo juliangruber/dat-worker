@@ -6,6 +6,7 @@ const enc = require('dat-encoding')
 const slice = require('slice-file')
 const JSONStream = require('JSONStream')
 const PassThrough = require('stream').PassThrough
+const Readable = require('stream').Readable
 const fs = require('fs')
 const extend = require('xtend')
 
@@ -108,8 +109,8 @@ module.exports = (dir, opts, cb) => {
     silent: true,
     stdio: ['pipe', 'pipe', 'pipe', 'ipc']
   })
-  w.stdout = proc.stdout
-  w.stderr = proc.stderr
+  w.stdout = Readable().wrap(proc.stdout)
+  w.stderr = Readable().wrap(proc.stderr)
 
   proc.on('message', obj => {
     const type = obj.type
