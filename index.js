@@ -13,6 +13,8 @@ const extend = require('xtend')
 const debug = require('debug')('dat-worker:host')
 
 const workerPath = `${__dirname}/scripts/worker.js`
+const noop = () => {
+}
 
 module.exports = (dir, opts, cb) => {
   if (typeof opts === 'function') {
@@ -40,19 +42,13 @@ module.exports = (dir, opts, cb) => {
         if (destroyed) return
         if (err) return out.emit('error', err)
 
-        proc.send({
-          type: 'list',
-          msg: {
-            path,
-            opts: opts
-          }
-        })
+        proc.send({ type: 'list', msg: { path, opts: opts } })
 
         const sl = slice(path)
         const rs = sl.follow()
-        rs.on('error', () => {}) // FIXME
-        const tr = JSONStream.parse([true])
-        tr.on('error', () => {}) // FIXME
+        rs.on('error', noop)
+        const tr = JSONStream.parse([ true ])
+        tr.on('error', noop)
         rs.pipe(tr).pipe(out)
 
         out.on('destroy', () => {
@@ -67,14 +63,7 @@ module.exports = (dir, opts, cb) => {
       const path = `/tmp/dat-worker-${Math.random().toString(16)}`
       fs.writeFile(path, '', err => {
         if (err) return out.emit('error', err)
-        proc.send({
-          type: 'createFileReadStream',
-          msg: {
-            path,
-            entry,
-            opts
-          }
-        })
+        proc.send({ type: 'createFileReadStream', msg: { path, entry, opts } })
         const onmessage = obj => {
           const type = obj.type
           const msg = obj.msg
@@ -100,18 +89,20 @@ module.exports = (dir, opts, cb) => {
     proc.kill()
   }
 
-  const proc = spawn(opts.execPath || 'node', [
-    workerPath,
-    w.key
-      ? enc.toStr(w.key)
-      : undefined,
-    w.dir,
-    JSON.stringify(opts)
-  ], {
-    env: extend(process.env, opts.env),
-    silent: true,
-    stdio: ['pipe', 'pipe', 'pipe', 'ipc']
-  })
+  const proc = spawn(
+    opts.execPath || 'node',
+    [
+      workerPath,
+      w.key ? enc.toStr(w.key) : undefined,
+      w.dir,
+      JSON.stringify(opts)
+    ],
+    {
+      env: extend(process.env, opts.env),
+      silent: true,
+      stdio: [ 'pipe', 'pipe', 'pipe', 'ipc' ]
+    }
+  )
   w.stdout = Readable().wrap(proc.stdout)
   if (opts.stdout) w.stdout.pipe(opts.stdout)
   w.stderr = Readable().wrap(proc.stderr)

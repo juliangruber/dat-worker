@@ -8,11 +8,15 @@ var mkdirp = require('mkdirp')
 var Dat = require('..')
 
 // os x adds this if you view the fixtures in finder and breaks the file count assertions
-try { fs.unlinkSync(path.join(__dirname, 'fixtures', '.DS_Store')) } catch (e) { /* ignore error */ }
+try {
+  fs.unlinkSync(path.join(__dirname, 'fixtures', '.DS_Store'))
+} catch (e) {
+}
 
 var fixtures = path.join(__dirname, 'fixtures')
 var fixtureStats = {
-  filesTotal: 2, // table.csv, empty.txt
+  filesTotal: 2,
+  // table.csv, empty.txt
   bytesTotal: 1441
 }
 
@@ -22,7 +26,8 @@ var shareDat
 var shareKey
 
 test('prep', function (t) {
-  rimraf.sync(path.join(fixtures, '.dat')) // for previous failed tests
+  rimraf.sync(path.join(fixtures, '.dat'))
+  // for previous failed tests
   // need live for live download tests!
   Dat(fixtures, { live: true }, function (err, dat) {
     t.error(err, 'share error okay')
@@ -35,7 +40,7 @@ test('prep', function (t) {
 })
 
 test('Download with default opts', function (t) {
-  Dat(downloadDir, {key: shareKey, live: true}, function (err, dat) {
+  Dat(downloadDir, { key: shareKey, live: true }, function (err, dat) {
     t.error(err, 'no download init error')
     t.ok(dat, 'callsback with dat object')
     t.ok(dat.key, 'has key')
@@ -49,37 +54,53 @@ test('Download with default opts', function (t) {
       t.pass('dat emits update')
     })
 
-    setTimeout(function () {
-      var st = dat.stats.get()
-      t.same(st.filesTotal, fixtureStats.filesTotal, 'files total match')
-      t.same(st.bytesTotal, fixtureStats.bytesTotal, 'bytes total match')
-      t.skip(st.blocksProgress, st.blocksTotal, 'TODO: blocks total matches progress')
-      t.skip(st.filesProgress, st.filesTotal, 'TODO: file total matches progress')
-      fs.readdir(downloadDir, function (_, files) {
-        var hasCsvFile = files.indexOf('table.csv') > -1
-        var hasDatFolder = files.indexOf('.dat') > -1
-        t.ok(hasDatFolder, '.dat folder created')
-        t.ok(hasCsvFile, 'csv file downloaded')
+    setTimeout(
+      function () {
+        var st = dat.stats.get()
+        t.same(st.filesTotal, fixtureStats.filesTotal, 'files total match')
+        t.same(st.bytesTotal, fixtureStats.bytesTotal, 'bytes total match')
+        t.skip(
+          st.blocksProgress,
+          st.blocksTotal,
+          'TODO: blocks total matches progress'
+        )
+        t.skip(
+          st.filesProgress,
+          st.filesTotal,
+          'TODO: file total matches progress'
+        )
+        fs.readdir(downloadDir, function (_, files) {
+          var hasCsvFile = files.indexOf('table.csv') > -1
+          var hasDatFolder = files.indexOf('.dat') > -1
+          t.ok(hasDatFolder, '.dat folder created')
+          t.ok(hasCsvFile, 'csv file downloaded')
 
-        if (files.indexOf('folder') > -1) {
-          var subFiles = fs.readdirSync(path.join(downloadDir, 'folder'))
-          var hasEmtpy = subFiles.indexOf('empty.txt') > -1
-          t.skip(hasEmtpy, 'empty.txt file downloaded')
-          // TODO: known hyperdrive issue https://github.com/mafintosh/hyperdrive/issues/83
-        }
-        t.end()
-      })
-    }, 1500)
+          if (files.indexOf('folder') > -1) {
+            var subFiles = fs.readdirSync(path.join(downloadDir, 'folder'))
+            var hasEmtpy = subFiles.indexOf('empty.txt') > -1
+            t.skip(hasEmtpy, 'empty.txt file downloaded')
+            // TODO: known hyperdrive issue https://github.com/mafintosh/hyperdrive/issues/83
+          }
+          t.end()
+        })
+      },
+      1500
+    )
   })
 })
 
 if (!process.env.TRAVIS) {
   test('download and live update (new file)', function (t) {
-    var dat = downloadDat // use previous test download
+    var dat = downloadDat
+    // use previous test download
     var newFile = path.join(fixtures, 'new.txt')
 
     dat.on('update', function () {
-      t.same(dat.stats.get().filesTotal, fixtureStats.filesTotal + 1, 'filesTotal has one more')
+      t.same(
+        dat.stats.get().filesTotal,
+        fixtureStats.filesTotal + 1,
+        'filesTotal has one more'
+      )
 
       var st = dat.stats.get()
       if (st.blocksTotal && st.blocksProgress >= st.blocksTotal) return done()
@@ -123,7 +144,7 @@ test('close first test', function (t) {
 
 test('download from snapshot', function (t) {
   var shareKey
-  Dat(fixtures, {live: false}, function (err, dat) {
+  Dat(fixtures, { live: false }, function (err, dat) {
     t.error(err, 'live: false share, no error')
     shareDat = dat
     dat.once('update', function () {
@@ -177,6 +198,9 @@ test.onFinish(function () {
 function testFolder (cb) {
   // Delete old folder and make new one
   if (downloadDir && downloadDir.length) rimraf.sync(downloadDir)
-  downloadDir = path.join(os.tmpdir(), 'dat-download-tests-' + new Date().getTime())
+  downloadDir = path.join(
+    os.tmpdir(),
+    'dat-download-tests-' + new Date().getTime()
+  )
   mkdirp(downloadDir, cb)
 }

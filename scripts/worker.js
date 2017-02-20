@@ -2,34 +2,27 @@
 require('debug').enable('dat-worker*')
 
 // Nothing should fail here
-
 const debug = require('debug')('dat-worker:worker')
 
-const key = process.argv[2] !== 'undefined'
-  ? process.argv[2]
-  : undefined
+const key = process.argv[2] !== 'undefined' ? process.argv[2] : undefined
 const dir = process.argv[3]
 const opts = JSON.parse(process.argv[4])
 
 debug('init dir=%s key=%s', dir, key)
 
 // Exception logging
-
 const send = m => {
   process.send(m, err => {
     if (err) process.exit(1)
   })
 }
 
-const error = err => send({
-  type: 'error',
-  msg: { message: err.message, stack: err.stack }
-})
+const error = err =>
+  send({ type: 'error', msg: { message: err.message, stack: err.stack } })
 
 process.on('uncaughtException', err => error(err))
 
 // Main code
-
 const Dat = require('dat-node')
 const debounce = require('debounce')
 const toStr = require('dat-encoding').toStr
@@ -39,7 +32,8 @@ const JSONStream = require('JSONStream')
 try {
   const app = require('electron').app
   app.dock.hide()
-} catch (_) {}
+} catch (_) {
+}
 
 debug('starting dat-node %s (key=%s)', dir, key)
 
@@ -51,22 +45,19 @@ Dat(dir, { key }, (err, dat) => {
 
   debug('started dat-node %s (key=%s)', dir, key)
 
-  const _update = () => send({
-    type: 'update',
-    msg: {
-      stats: stats.get(),
-      network: {
-        connected: network.connected
-      },
-      owner: dat.owner,
-      key: toStr(dat.key),
-      archive: {
-        content: {
-          bytes: dat.archive.content && dat.archive.content.bytes
+  const _update = () =>
+    send({
+      type: 'update',
+      msg: {
+        stats: stats.get(),
+        network: { connected: network.connected },
+        owner: dat.owner,
+        key: toStr(dat.key),
+        archive: {
+          content: { bytes: dat.archive.content && dat.archive.content.bytes }
         }
       }
-    }
-  })
+    })
   const update = debounce(_update, 200)
 
   process.on('message', obj => {
@@ -85,10 +76,9 @@ Dat(dir, { key }, (err, dat) => {
       case 'createFileReadStream':
         rs = dat.archive.createFileReadStream(msg.entry, msg.opts)
         ws = fs.createWriteStream(msg.path)
-        rs.pipe(ws).on('close', () => send({
-          type: 'read-finish',
-          msg: msg.path
-        }))
+        rs
+          .pipe(ws)
+          .on('close', () => send({ type: 'read-finish', msg: msg.path }))
         break
       default:
         error(new Error(`Unknown event: ${type}`))
