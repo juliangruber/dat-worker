@@ -1,5 +1,19 @@
 'use strict'
 
+// Nothing should fail here
+
+const debug = require('debug')('dat-worker:worker')
+
+const key = process.argv[2] !== 'undefined'
+  ? process.argv[2]
+  : undefined
+const dir = process.argv[3]
+const opts = JSON.parse(process.argv[4])
+
+debug('init dir=%s key=%s', dir, key)
+
+// Exception logging
+
 const send = m => {
   process.send(m, err => {
     if (err) process.exit(1)
@@ -13,6 +27,8 @@ const error = err => send({
 
 process.on('uncaughtException', err => error(err))
 
+// Main code
+
 const Dat = require('dat-node')
 const debounce = require('debounce')
 const toStr = require('dat-encoding').toStr
@@ -24,14 +40,15 @@ try {
   app.dock.hide()
 } catch (_) {}
 
-const key = process.argv[2] !== 'undefined'
-  ? process.argv[2]
-  : undefined
-const dir = process.argv[3]
-const opts = JSON.parse(process.argv[4])
+debug('starting dat-node %s (key=%s)', dir, key)
 
 Dat(dir, { key }, (err, dat) => {
-  if (err) return error(err)
+  if (err) {
+    debug('dat-node error %s', err)
+    return error(err)
+  }
+
+  debug('started dat-node %s (key=%s)', dir, key)
 
   const _update = () => send({
     type: 'update',

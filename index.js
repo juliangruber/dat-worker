@@ -9,6 +9,7 @@ const PassThrough = require('stream').PassThrough
 const Readable = require('stream').Readable
 const fs = require('fs')
 const extend = require('xtend')
+const debug = require('debug')('dat-worker:host')
 
 const workerPath = `${__dirname}/scripts/worker.js`
 
@@ -17,6 +18,7 @@ module.exports = (dir, opts, cb) => {
     cb = opts
     opts = {}
   }
+  debug('init %s (key=%s)', dir, opts.key)
 
   const w = new EventEmitter()
   w.key = opts.key
