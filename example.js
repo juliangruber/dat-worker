@@ -1,13 +1,16 @@
 'use strict'
 const Dat = require('.')
 const fs = require('fs')
+const log = require('console-stream')()
+
+const dir = process.argv[2] || '/tmp/dat-worker-example'
 
 try {
-  fs.mkdirSync('/tmp/dat-worker-example')
+  fs.mkdirSync(dir)
 } catch (_) {
 }
 
-Dat('/tmp/dat-worker-example', {}, (err, dat) => {
+Dat(dir, { stdout: log, stderr: log }, (err, dat) => {
   if (err) throw err
 
   /* dat.on('update', () => {
