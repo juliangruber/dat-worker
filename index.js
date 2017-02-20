@@ -113,7 +113,9 @@ module.exports = (dir, opts, cb) => {
     stdio: ['pipe', 'pipe', 'pipe', 'ipc']
   })
   w.stdout = Readable().wrap(proc.stdout)
+  if (opts.stdout) w.stdout.pipe(opts.stdout)
   w.stderr = Readable().wrap(proc.stderr)
+  if (opts.stderr) w.stderr.pipe(opts.stderr)
 
   proc.on('message', obj => {
     const type = obj.type
