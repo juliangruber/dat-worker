@@ -11,6 +11,8 @@ const fs = require('fs')
 const extend = require('xtend')
 const debug = require('debug')('dat-worker:host')
 
+require('debug').enable('dat-worker*')
+
 const workerPath = `${__dirname}/scripts/worker.js`
 
 module.exports = (dir, opts, cb) => {

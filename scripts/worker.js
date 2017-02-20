@@ -3,6 +3,7 @@
 // Nothing should fail here
 
 const debug = require('debug')('dat-worker:worker')
+require('debug').enable('dat-worker*')
 
 const key = process.argv[2] !== 'undefined'
   ? process.argv[2]
