@@ -89,8 +89,10 @@ module.exports = (dir, opts, cb) => {
     proc.kill()
   }
 
+  const runtime = opts.execPath || 'node'
+  debug('spawn %s %s key=%s dir=%s opts=%j', runtime, workerPath, w.key, w.dir, opts)
   const proc = spawn(
-    opts.execPath || 'node',
+    runtime,
     [
       workerPath,
       w.key ? enc.toStr(w.key) : undefined,
@@ -136,6 +138,7 @@ module.exports = (dir, opts, cb) => {
   const onInitMessage = obj => {
     const type = obj.type
     const msg = obj.msg
+    debug('got init message (%s - %j)', type, msg)
 
     switch (type) {
       case 'error':
