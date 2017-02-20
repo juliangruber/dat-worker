@@ -90,7 +90,14 @@ module.exports = (dir, opts, cb) => {
   }
 
   const runtime = opts.execPath || 'node'
-  debug('spawn %s %s key=%s dir=%s opts=%j', runtime, workerPath, w.key, w.dir, opts)
+  debug(
+    'spawn %s %s key=%s dir=%s opts=%j',
+    runtime,
+    workerPath,
+    w.key,
+    w.dir,
+    opts
+  )
   const proc = spawn(
     runtime,
     [
