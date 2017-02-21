@@ -1,7 +1,7 @@
 'use strict'
 require('debug').enable('dat-worker*')
 
-const fork = require('child_process').fork
+const spawn = require('child_process').spawn
 const EventEmitter = require('events')
 const enc = require('dat-encoding')
 const slice = require('slice-file')
@@ -89,11 +89,24 @@ module.exports = (dir, opts, cb) => {
     proc.kill()
   }
 
-  debug('fork %s %s key=%s dir=%s opts=%j', workerPath, w.key, w.dir, opts)
-
-  const proc = fork(
+  const runtime = opts.execPath || 'node'
+  debug(
+    'spawn %s %s key=%s dir=%s opts=%j',
+    runtime,
     workerPath,
-    [ w.key ? enc.toStr(w.key) : undefined, w.dir, JSON.stringify(opts) ],
+    w.key,
+    w.dir,
+    opts
+  )
+
+  const proc = spawn(
+    runtime,
+    [
+      workerPath,
+      w.key ? enc.toStr(w.key) : undefined,
+      w.dir,
+      JSON.stringify(opts)
+    ],
     {
       env: extend(process.env, opts.env),
       silent: true,
