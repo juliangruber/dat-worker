@@ -1,5 +1,5 @@
 'use strict'
-require('debug').enable('dat-worker*')
+require('debug').enable((process.env.DEBUG || '') + ',dat-worker*')
 
 // Nothing should fail here
 const debug = require('debug')('dat-worker:worker')
