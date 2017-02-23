@@ -1,6 +1,6 @@
 {
   "name": "dat-worker",
-  "version": "5.9.0",
+  "version": "5.9.1",
   "license": "MIT",
   "scripts": {
     "test": "prettier-standard-formatter *.js */*.js"
