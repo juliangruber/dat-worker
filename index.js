@@ -1,5 +1,4 @@
 'use strict'
-require('debug').enable('dat-worker*')
 
 const fork = require('child_process').fork
 const EventEmitter = require('events')
