@@ -1,5 +1,4 @@
 'use strict'
-
 const fork = require('child_process').fork
 const EventEmitter = require('events')
 const enc = require('dat-encoding')
@@ -112,6 +111,7 @@ module.exports = (dir, opts, cb) => {
       case 'update':
         msg.key = enc.toBuf(msg.key)
         w.stats.get = () => msg.stats
+        w.stats.network = msg.statsNetwork
         w.network = msg.network
         w.owner = msg.owner
         w.key = w.archive.key = enc.toBuf(msg.key)

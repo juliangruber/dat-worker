@@ -1,5 +1,4 @@
 'use strict'
-
 // Nothing should fail here
 const debug = require('debug')('dat-worker:worker')
 
@@ -38,11 +37,20 @@ Dat(dir, { key }, (err, dat) => {
 
   debug('started dat-node %s (key=%s)', dir, key)
 
+  const network = dat.joinNetwork()
+  network.on('connection', peer => {
+    update()
+    peer.once('close', update)
+  })
+
+  const stats = dat.trackStats()
+
   const _update = () =>
     send({
       type: 'update',
       msg: {
         stats: stats.get(),
+        statsNetwork: stats.network,
         network: { connected: network.connected },
         owner: dat.owner,
         key: toStr(dat.key),
@@ -85,14 +93,6 @@ Dat(dir, { key }, (err, dat) => {
     })
     importer.on('file imported', update)
   }
-
-  const network = dat.joinNetwork()
-  network.on('connection', peer => {
-    update()
-    peer.once('close', update)
-  })
-
-  const stats = dat.trackStats()
 
   dat.archive.on('download', update)
 
