@@ -29,12 +29,6 @@ const toStr = require('dat-encoding').toStr
 const fs = require('fs')
 const JSONStream = require('JSONStream')
 
-try {
-  const app = require('electron').app
-  app.dock.hide()
-} catch (_) {
-}
-
 debug('starting dat-node %s (key=%s)', dir, key)
 
 Dat(dir, { key }, (err, dat) => {
