@@ -50,7 +50,10 @@ Dat(dir, { key }, (err, dat) => {
       type: 'update',
       msg: {
         stats: stats.get(),
-        statsNetwork: stats.network,
+        statsNetwork: {
+          downloadSpeed: stats.network.downloadSpeed,
+          uploadSpeed: stats.network.uploadSpeed,
+        },
         network: { connected: network.connected },
         owner: dat.owner,
         key: toStr(dat.key),
