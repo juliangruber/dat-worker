@@ -52,7 +52,7 @@ Dat(dir, { key }, (err, dat) => {
         stats: stats.get(),
         statsNetwork: {
           downloadSpeed: stats.network.downloadSpeed,
-          uploadSpeed: stats.network.uploadSpeed,
+          uploadSpeed: stats.network.uploadSpeed
         },
         network: { connected: network.connected },
         owner: dat.owner,
