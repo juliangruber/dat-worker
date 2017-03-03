@@ -48,7 +48,7 @@ Dat(dir, { key }, (err, dat) => {
           downloadSpeed: stats.network.downloadSpeed,
           uploadSpeed: stats.network.uploadSpeed,
         },
-        network: { connected: dat.network.connected },
+        network: dat.network && { connected: dat.network.connected },
         owner: dat.owner,
         key: toStr(dat.key),
         archive: {
