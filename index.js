@@ -9,6 +9,7 @@ const Readable = require('stream').Readable
 const fs = require('fs')
 const extend = require('xtend')
 const debug = require('debug')('dat-worker:host')
+const ts = require('monotonic-timestamp')
 
 const workerPath = `${__dirname}/scripts/worker.js`
 const noop = () => {
@@ -35,7 +36,7 @@ module.exports = (dir, opts, cb) => {
         out.emit('destroy')
       }
 
-      const path = `/tmp/dat-worker-${Math.random().toString(16)}`
+      const path = `/tmp/dat-worker-${ts()}-${Math.random().toString(16)}`
       fs.writeFile(path, '', err => {
         if (destroyed) return
         if (err) return out.emit('error', err)
@@ -58,7 +59,7 @@ module.exports = (dir, opts, cb) => {
     },
     createFileReadStream: (entry, opts) => {
       const out = new PassThrough()
-      const path = `/tmp/dat-worker-${Math.random().toString(16)}`
+      const path = `/tmp/dat-worker-${ts()}-${Math.random().toString(16)}`
       fs.writeFile(path, '', err => {
         if (err) return out.emit('error', err)
         proc.send({ type: 'createFileReadStream', msg: { path, entry, opts } })
