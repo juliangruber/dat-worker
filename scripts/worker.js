@@ -37,12 +37,6 @@ Dat(dir, { key }, (err, dat) => {
 
   debug('started dat-node %s (key=%s)', dir, key)
 
-  const network = dat.joinNetwork()
-  network.on('connection', peer => {
-    update()
-    peer.once('close', update)
-  })
-
   const stats = dat.trackStats()
 
   const _update = () =>
@@ -54,7 +48,7 @@ Dat(dir, { key }, (err, dat) => {
           downloadSpeed: stats.network.downloadSpeed,
           uploadSpeed: stats.network.uploadSpeed,
         },
-        network: { connected: network.connected },
+        network: { connected: dat.network.connected },
         owner: dat.owner,
         key: toStr(dat.key),
         archive: {
@@ -83,6 +77,16 @@ Dat(dir, { key }, (err, dat) => {
         rs
           .pipe(ws)
           .on('close', () => send({ type: 'read-finish', msg: msg.path }))
+        break
+      case 'joinNetwork':
+        dat.joinNetwork()
+        dat.network.on('connection', peer => {
+          update()
+          peer.once('close', update)
+        })
+        break
+      case 'leaveNetwork':
+        dat.leaveNetwork()
         break
       default:
         error(new Error(`Unknown event: ${type}`))
