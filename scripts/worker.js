@@ -46,7 +46,7 @@ Dat(dir, { key }, (err, dat) => {
         stats: stats.get(),
         statsNetwork: {
           downloadSpeed: stats.network.downloadSpeed,
-          uploadSpeed: stats.network.uploadSpeed,
+          uploadSpeed: stats.network.uploadSpeed
         },
         network: dat.network && { connected: dat.network.connected },
         owner: dat.owner,
@@ -84,9 +84,12 @@ Dat(dir, { key }, (err, dat) => {
           update()
           peer.once('close', update)
         })
+        update()
         break
       case 'leaveNetwork':
         dat.leaveNetwork()
+        delete dat.network
+        update()
         break
       default:
         error(new Error(`Unknown event: ${type}`))
