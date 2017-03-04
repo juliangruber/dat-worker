@@ -87,6 +87,12 @@ module.exports = (dir, opts, cb) => {
     if (cb) proc.on('exit', cb)
     proc.kill()
   }
+  w.join = w.joinNetwork = () => {
+    proc.send({ type: 'joinNetwork' })
+  }
+  w.leave = w.leaveNetwork = () => {
+    proc.send({ type: 'leaveNetwork' })
+  }
 
   debug('fork %s key=%s dir=%s opts=%j', workerPath, w.key, w.dir, opts)
 
