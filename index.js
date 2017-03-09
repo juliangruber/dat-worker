@@ -110,35 +110,33 @@ module.exports = (dir, opts, cb) => {
   w.stderr = Readable().wrap(proc.stderr)
   if (opts.stderr) w.stderr.pipe(opts.stderr)
 
-  proc.on('message', obj => {
-    const type = obj.type
-    const msg = obj.msg
-
-    switch (type) {
-      case 'update':
-        msg.key = enc.toBuf(msg.key)
-        w.stats.get = () => msg.stats
-        w.stats.network = msg.statsNetwork
-        w.network = msg.network
-        w.owner = msg.owner
-        w.key = w.archive.key = enc.toBuf(msg.key)
-        if (typeof msg.archive.content.bytes === 'number') {
-          w.archive.content = { bytes: msg.archive.content.bytes }
-        }
-        w.emit('update')
-        break
-      case 'error':
-        const err = new Error(msg.message)
-        err.stack = msg.stack
-        w.emit('error', err)
-        proc.kill()
-        break
+  // IPC helper
+  const on = (type, fn) => {
+    const onMessage = obj => {
+      if (obj.type !== type && type !== '*') return
+      fn(obj.msg, obj.type)
     }
+    proc.on('message', onMessage)
+
+    const off = () => proc.removeListener('message', onMessage)
+    return off
+  }
+
+  on('update', msg => {
+    msg.key = enc.toBuf(msg.key)
+    w.stats.get = () => msg.stats
+    w.stats.network = msg.statsNetwork
+    w.network = msg.network
+    w.owner = msg.owner
+    w.key = w.archive.key = enc.toBuf(msg.key)
+    if (typeof msg.archive.content.bytes === 'number') {
+      w.archive.content = { bytes: msg.archive.content.bytes }
+    }
+    w.emit('update')
   })
 
-  const onInitMessage = obj => {
-    const type = obj.type
-    const msg = obj.msg
+  const off = on('*', (msg, type) => {
+    if (type === 'update') return
     debug('got init message (%s - %j)', type, msg)
 
     switch (type) {
@@ -149,11 +147,16 @@ module.exports = (dir, opts, cb) => {
         cb(err)
         break
       case 'ready':
-        proc.removeListener('message', onInitMessage)
+        off()
         cb(null, w)
+        on('error', msg => {
+          const err = new Error(msg.message)
+          err.stack = msg.stack
+          w.emit('error', err)
+          proc.kill()
+        })
     }
-  }
-  proc.on('message', onInitMessage)
+  })
 
   return w
 }
