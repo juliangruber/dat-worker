@@ -25,6 +25,7 @@ const Dat = require('dat-node')
 const debounce = require('debounce')
 const toStr = require('dat-encoding').toStr
 const fs = require('fs')
+const JSONStream = require('JSONStream')
 const on = require('../lib/ipc')(process)
 
 debug('starting dat-node %s (key=%s)', dir, key)
@@ -80,7 +81,11 @@ Dat(dir, { key }, (err, dat) => {
     dat.joinNetwork()
     dat.network.on('connection', peer => {
       update()
-      peer.once('close', update)
+      peer.once('close', () => {
+        update()
+        // https://github.com/datproject/dat-desktop/issues/227
+        setTimeout(update, 1000)
+      })
     })
     update()
   })
