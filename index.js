@@ -2,14 +2,11 @@
 const fork = require('child_process').fork
 const EventEmitter = require('events')
 const enc = require('dat-encoding')
-const slice = require('slice-file')
-const JSONStream = require('JSONStream')
 const PassThrough = require('stream').PassThrough
 const Readable = require('stream').Readable
 const fs = require('fs')
 const extend = require('xtend')
 const debug = require('debug')('dat-worker:host')
-const ts = require('monotonic-timestamp')
 const createIpcHelper = require('./lib/ipc')
 
 const workerPath = `${__dirname}/scripts/worker.js`
