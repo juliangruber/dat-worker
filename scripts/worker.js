@@ -25,7 +25,6 @@ const Dat = require('dat-node')
 const debounce = require('debounce')
 const toStr = require('dat-encoding').toStr
 const fs = require('fs')
-const JSONStream = require('JSONStream')
 const on = require('../lib/ipc')(process)
 
 debug('starting dat-node %s (key=%s)', dir, key)
