@@ -26,6 +26,7 @@ const debounce = require('debounce')
 const toStr = require('dat-encoding').toStr
 const fs = require('fs')
 const JSONStream = require('JSONStream')
+const on = require('../lib/ipc')(process)
 
 debug('starting dat-node %s (key=%s)', dir, key)
 
@@ -58,42 +59,37 @@ Dat(dir, { key }, (err, dat) => {
     })
   const update = debounce(_update, 200)
 
-  process.on('message', obj => {
-    const type = obj.type
-    const msg = obj.msg
-    let rs, tr, ws
+  on('list', msg => {
+    const rs = dat.archive.list({ opts: msg.opts })
+    rs.on('data', entry => {
+      send({ type: msg.id, msg: entry })
+    })
+    on(msg.id, () => rs.destroy())
+  })
 
-    switch (type) {
-      case 'list':
-        rs = dat.archive.list({ opts: msg.opts })
-        tr = JSONStream.stringify()
-        ws = fs.createWriteStream(msg.path)
-        rs.pipe(tr)
-        tr.on('data', d => ws.write(`${d}\n`))
-        break
-      case 'createFileReadStream':
-        rs = dat.archive.createFileReadStream(msg.entry, msg.opts)
-        ws = fs.createWriteStream(msg.path)
-        rs
-          .pipe(ws)
-          .on('close', () => send({ type: 'read-finish', msg: msg.path }))
-        break
-      case 'joinNetwork':
-        dat.joinNetwork()
-        dat.network.on('connection', peer => {
-          update()
-          peer.once('close', update)
-        })
-        update()
-        break
-      case 'leaveNetwork':
-        dat.leaveNetwork()
-        delete dat.network
-        update()
-        break
-      default:
-        error(new Error(`Unknown event: ${type}`))
-    }
+  on('createFileReadStream', msg => {
+    const rs = dat.archive.createFileReadStream(msg.entry, msg.opts)
+    rs.on('data', buf => {
+      send({ type: msg.id, msg: buf.toString('hex') })
+    })
+    rs.on('close', () => {
+      send({ type: `close-${msg.id}` })
+    })
+  })
+
+  on('joinNetwork', msg => {
+    dat.joinNetwork()
+    dat.network.on('connection', peer => {
+      update()
+      peer.once('close', update)
+    })
+    update()
+  })
+
+  on('leaveNetwork', msg => {
+    dat.leaveNetwork()
+    delete dat.network
+    update()
   })
 
   if (dat.owner) {

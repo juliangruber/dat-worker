@@ -13,13 +13,12 @@ try {
 Dat(dir, { stdout: log, stderr: log }, (err, dat) => {
   if (err) throw err
 
-  setInterval(
+  /* setInterval(
     () => {
       console.log('network', dat.stats.network)
     },
     1000
-  )
-
+  ) */
   const listStream = dat.archive.list({ live: true })
   listStream.once('data', () => listStream.destroy())
   listStream.on('data', () => process.stdout.write('.'))

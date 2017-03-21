@@ -10,6 +10,7 @@ const fs = require('fs')
 const extend = require('xtend')
 const debug = require('debug')('dat-worker:host')
 const ts = require('monotonic-timestamp')
+const createIpcHelper = require('./lib/ipc')
 
 const workerPath = `${__dirname}/scripts/worker.js`
 const noop = () => {
@@ -29,56 +30,34 @@ module.exports = (dir, opts, cb) => {
   w.stats = {}
   w.archive = {
     list: opts => {
-      const out = new PassThrough({ objectMode: true })
-      let destroyed = false
+      const id = Date.now() + Math.random()
+      const out = PassThrough({ objectMode: true })
+
       out.destroy = () => {
-        destroyed = true
+        proc.send({ type: id })
+        off()
         out.emit('destroy')
       }
 
-      const path = `/tmp/dat-worker-${ts()}-${Math.random().toString(16)}`
-      fs.writeFile(path, '', err => {
-        if (destroyed) return
-        if (err) return out.emit('error', err)
+      proc.send({ type: 'list', msg: { opts, id } })
 
-        proc.send({ type: 'list', msg: { path, opts: opts } })
-
-        const sl = slice(path)
-        const rs = sl.follow()
-        rs.on('error', noop)
-        const tr = JSONStream.parse([ true ])
-        tr.on('error', noop)
-        rs.pipe(tr).pipe(out)
-
-        out.on('destroy', () => {
-          sl.close()
-        })
+      const off = on(id, entry => {
+        out.push(entry)
       })
 
       return out
     },
     createFileReadStream: (entry, opts) => {
       const out = new PassThrough()
-      const path = `/tmp/dat-worker-${ts()}-${Math.random().toString(16)}`
-      fs.writeFile(path, '', err => {
-        if (err) return out.emit('error', err)
-        proc.send({ type: 'createFileReadStream', msg: { path, entry, opts } })
-        const onmessage = obj => {
-          const type = obj.type
-          const msg = obj.msg
-
-          if (type === 'read-finish' && msg === path) {
-            proc.removeListener('message', onmessage)
-            const rs = fs.createReadStream(path)
-            rs.pipe(out)
-            rs.on('close', () => {
-              fs.unlink(path, err => {
-                if (err) out.emit('error', err)
-              })
-            })
-          }
-        }
-        proc.on('message', onmessage)
+      const id = Date.now() + Math.random()
+      proc.send({ type: 'createFileReadStream', msg: { id, entry, opts } })
+      const offChunk = on(id, str => {
+        out.push(Buffer(str, 'hex'))
+      })
+      const offClose = on(`close-${id}`, () => {
+        out.push(null)
+        offChunk()
+        offClose()
       })
       return out
     }
@@ -110,17 +89,7 @@ module.exports = (dir, opts, cb) => {
   w.stderr = Readable().wrap(proc.stderr)
   if (opts.stderr) w.stderr.pipe(opts.stderr)
 
-  // IPC helper
-  const on = (type, fn) => {
-    const onMessage = obj => {
-      if (obj.type !== type && type !== '*') return
-      fn(obj.msg, obj.type)
-    }
-    proc.on('message', onMessage)
-
-    const off = () => proc.removeListener('message', onMessage)
-    return off
-  }
+  const on = createIpcHelper(proc)
 
   on('update', msg => {
     msg.key = enc.toBuf(msg.key)
