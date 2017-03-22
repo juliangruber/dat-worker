@@ -51,10 +51,10 @@ module.exports = (dir, opts, cb) => {
       const offChunk = on(id, str => {
         out.push(Buffer(str, 'hex'))
       })
-      const offClose = on(`close-${id}`, () => {
+      const offEnd = on(`end ${id}`, () => {
         out.push(null)
         offChunk()
-        offClose()
+        offEnd()
       })
       return out
     }

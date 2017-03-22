@@ -71,8 +71,8 @@ Dat(dir, { key }, (err, dat) => {
     rs.on('data', buf => {
       send({ type: msg.id, msg: buf.toString('hex') })
     })
-    rs.on('close', () => {
-      send({ type: `close-${msg.id}` })
+    rs.on('end', () => {
+      send({ type: `end ${msg.id}` })
     })
   })
 
